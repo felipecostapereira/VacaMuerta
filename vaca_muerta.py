@@ -119,7 +119,7 @@ with tabFrac:
     sEmpresa = st.multiselect('Empresa', empresas)
     if not sEmpresa: sEmpresa = empresas
     de = potencial[potencial['idempresa'].isin(sEmpresa)]
-    st.pyplot(sns.pairplot(data=de, x_vars=xvars, y_vars=xvars, hue='idempresa', kind=k))
+    st.pyplot(sns.pairplot(data=de, x_vars=xvars, y_vars=xvars, hue='idempresa', kind=k, palette='tab20'))
 
     plt.figure()
     blocos = potencial['areapermisoconcesion'].unique()
