@@ -188,33 +188,37 @@ with tabForecast:
         st.pyplot(axPrev, clear_figure=True)
 
     with tabExport:
-        dfExport = pd.DataFrame({
-            'mes': mPrev,
-            'q': qPrev,
-        })
-        dfExport['data'] = dfExport.apply(lambda row: date(inicio,1,1) + pd.DateOffset(months=row['mes']), axis=1)
-        dfExport['data'] = pd.to_datetime(dfExport['data'])
-        dfExport['ano'] = dfExport['data'].dt.year
-        dfExport['vol'] = dfExport['data'].dt.days_in_month * dfExport['q']
+        if decl is None:
+            st.write('Faça um ajuste na aba "Histórico"')
 
-        dfExportYear = dfExport.groupby(['ano'])[['ano','vol']].aggregate({'ano':max, 'vol':sum})
-        dfExportYear['qg'] = (dfExportYear['vol']/365).astype(int)
-        dfExportYear['qo'] = (dfExportYear['qg']*cgr/1000).astype(int)
-        dfExportYear.set_index('ano', inplace=True)
-        dfExportYear = dfExportYear.rename(columns={'qo':'qo[m3/d]', 'qg':'qg[Mil m3/d]'})
+        else:
+            dfExport = pd.DataFrame({
+                'mes': mPrev,
+                'q': qPrev,
+            })
+            dfExport['data'] = dfExport.apply(lambda row: date(inicio,1,1) + pd.DateOffset(months=row['mes']), axis=1)
+            dfExport['data'] = pd.to_datetime(dfExport['data'])
+            dfExport['ano'] = dfExport['data'].dt.year
+            dfExport['vol'] = dfExport['data'].dt.days_in_month * dfExport['q']
 
-        fig1 = plt.figure()
-        plt.plot(dfExportYear.index, dfExportYear['qo[m3/d]'], '-ro', label='Qo')
-        plt.xlabel('Ano')
-        plt.ylabel('qo[m3/d]')
-        plt.ylim([0,None])
-        plt.legend(loc=2)
+            dfExportYear = dfExport.groupby(['ano'])[['ano','vol']].aggregate({'ano':max, 'vol':sum})
+            dfExportYear['qg'] = (dfExportYear['vol']/365).astype(int)
+            dfExportYear['qo'] = (dfExportYear['qg']*cgr/1000).astype(int)
+            dfExportYear.set_index('ano', inplace=True)
+            dfExportYear = dfExportYear.rename(columns={'qo':'qo[m3/d]', 'qg':'qg[Mil m3/d]'})
 
-        plt.twinx()
-        plt.plot(dfExportYear.index, dfExportYear['qg[Mil m3/d]'], label='Qg')
-        plt.ylabel('qg[Mil m3/d]')
-        plt.legend(loc=1)
+            fig1 = plt.figure()
+            plt.plot(dfExportYear.index, dfExportYear['qo[m3/d]'], '-ro', label='Qo')
+            plt.xlabel('Ano')
+            plt.ylabel('qo[m3/d]')
+            plt.ylim([0,None])
+            plt.legend(loc=2)
 
-        st.pyplot(fig1, clear_figure=True)
+            plt.twinx()
+            plt.plot(dfExportYear.index, dfExportYear['qg[Mil m3/d]'], label='Qg')
+            plt.ylabel('qg[Mil m3/d]')
+            plt.legend(loc=1)
 
-        st.table(dfExportYear[['qo[m3/d]', 'qg[Mil m3/d]']])
+            st.pyplot(fig1, clear_figure=True)
+
+            st.table(dfExportYear[['qo[m3/d]', 'qg[Mil m3/d]']])
