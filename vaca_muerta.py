@@ -6,6 +6,49 @@ import matplotlib.pyplot as plt
 import os
 import streamlit as st
 
+companies = [
+'YSUR=YSUR ENERGÍA ARGENTINA S.R.L.',
+'YPF=YPF S.A.',
+'WIN=WINTERSHALL ENERGIA S.A.',
+'WDA=WINTERSHALL DEA ARGENTINA S.A',
+'VST=VISTA ENERGY ARGENTINA SAU',
+'VOG=Vista Oil & Gas Argentina SA',
+'VNO=VENOIL S.A.',
+'VIS=VISTA OIL & GAS ARGENTINA SAU',
+'TPT=TECPETROL S.A.',
+'TAU=TOTAL AUSTRAL S.A.',
+'SHE=SHELL ARGENTINA S.A.',
+'ROC=ROCH S.A.',
+'PTRE=PETROLERA EL TREBOL S.A.',
+'PLU=PLUSPETROL S.A.',
+'PES=PATAGONIA ENERGY S.A.',
+'PEL=PETROLERA ENTRE LOMAS S.A.',
+'PCR=PETROQUIMICA COMODORO RIVADAVIA S.A.',
+'PBE=PETROBRAS ARGENTINA S.A.',
+'PAM=PAMPA ENERGIA S.A.',
+'PAL=PAN AMERICAN ENERGY SL',
+'PAE=PAN AMERICAN ENERGY (SUCURSAL ARGENTINA) LLC',
+'OGDV=O&G DEVELOPMENTS LTD S.A.',
+'MSA=MEDANITO S.A.',
+'MAD=MADALENA AUSTRAL S.A.',
+'KILW=KILWER S.A.',
+'GREC=GRECOIL y CIA. S.R.L.',
+'GPNE=GAS Y PETROLEO DEL NEUQUEN S.A.',
+'ENE1=ENERGICON S.A.',
+'EMEA=EXXONMOBIL EXPLORATION ARGENTINA S.R.L.',
+'CNA=CAPETROL ARGENTINA S.A.',
+'CHE=CHEVRON ARGENTINA S.R.L.',
+'APS=CAPEX S.A.',
+'APGA=PCO OIL AND GAS INTERNATIONAL INC (SUCURSAL A...',
+'APEA=APACHE ENERGIA ARGENTINA S.R.L.',
+'AME=AMERICAS PETROGAS ARGENTINA S.A.',
+'AESA=ARGENTA ENERGIA S.A.',
+'ACO=Petrolera Aconcagua Energia S.A.',
+]
+companies = '\n\n'.join(companies)
+
+print(companies)
+
 st.subheader('fm. Vaca Muerta')
 
 decl = None
@@ -71,6 +114,7 @@ with tabHist:
             st.write(f'Acum={Np[-1]/1000:,.0f} MMm³ ({Np[-1]*1000*3.5314666572222e-8:.1f} Bcf)')
 
             ax = sns.lineplot(data=dfprod2, x='m', hue='idpozo', y=qoqg, palette='tab20')
+
             plt.plot(meses, qAjuste, lw=2, c='k')
             ax.twinx()
             plt.ylabel('Np(m3) ou Gp(Km3)')
@@ -95,6 +139,8 @@ with tabHist:
             st.pyplot(ax.figure, clear_figure=True)
 
 with tabFrac:
+    # st.write((dfprod[['idempresa','empresa']].drop_duplicates()))
+
     c1,c2 = st.columns(2)
 
     with c1:
@@ -118,17 +164,23 @@ with tabFrac:
 
     plt.figure()
     empresas = potencial['idempresa'].unique()
-    sEmpresa = st.multiselect('Empresa', empresas)
+    sEmpresa = st.multiselect('Empresa', empresas, help=companies)
     if not sEmpresa: sEmpresa = empresas
     de = potencial[potencial['idempresa'].isin(sEmpresa)]
-    st.pyplot(sns.pairplot(data=de, x_vars=xvars, y_vars=xvars, hue='idempresa', kind=k, palette='tab20'))
+    pp1 = sns.pairplot(data=de, x_vars=xvars, y_vars=xvars[0], hue='idempresa', kind=k, palette='tab10')
+    for ax in pp1.axes.flat:
+        ax.tick_params(axis='both', labelleft=True, labelbottom=True)
+    st.pyplot(pp1)
 
     plt.figure()
     blocos = potencial['areapermisoconcesion'].unique()
     sBloco = st.multiselect('Bloco', blocos)
     if not sBloco: sBloco = blocos
     db = potencial[potencial['areapermisoconcesion'].isin(sBloco)]
-    st.pyplot(sns.pairplot(data=db, x_vars=xvars, y_vars=xvars, hue='areapermisoconcesion', kind=k))
+    pp2 = sns.pairplot(data=db, x_vars=xvars, y_vars=xvars[0], hue='areapermisoconcesion', kind=k)
+    for ax in pp2.axes.flat:
+        ax.tick_params(axis='both', labelleft=True, labelbottom=True)
+    st.pyplot(pp2)
 
 with tabForecast:
     if decl is None:
