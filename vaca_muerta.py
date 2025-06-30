@@ -5,6 +5,9 @@ from datetime import datetime, date
 import matplotlib.pyplot as plt
 import os
 import streamlit as st
+import geopandas
+import plotly.express as px
+import regex as re
 
 companies = [
 'YSUR=YSUR ENERGÍA ARGENTINA S.R.L.',
@@ -72,7 +75,25 @@ dfprod['m'] = dfprod['data'].dt.to_period('M').astype('int64') - dfprod['data_st
 dfprod = dfprod[dfprod['formacion']=='vaca muerta']
 dfprod = dfprod[dfprod['tipoestado']!='Parado Transitoriamente']
 
-tabFrac, tabHist, tabForecast, tabExport = st.tabs(['Fraturas', 'Histórico', 'Previsão', 'Exportação'])
+tabBlocos, tabFrac, tabHist, tabForecast, tabExport = st.tabs(['Blocos', 'Fraturas', 'Histórico', 'Previsão', 'Exportação'])
+
+with tabBlocos:
+    pathShape = './data/produccin-hidrocarburos-yacimientos/'
+    fShape = 'producciÒn-hidrocarburos-yacimientos-shp.shp'
+    pathShape = os.path.join(pathShape,fShape)
+    gdf = geopandas.read_file(pathShape).to_crs(epsg=4326)
+    # gdf['geometry'] = gdf['geometry'].to_crs(epsg=4326)
+    # gdf.area
+    # fig = px.choropleth_map(gdf,
+    #                         geojson=gdf.geometry,
+    #                         locations=gdf.index,
+    #                         # color=colorSel,
+    #                         center={"lat": -25, "lon": -42},
+    #                         map_style='open-street-map',
+    #                         zoom=5.2)
+    # fig.update_layout(width=800, height=500)
+
+
 
 with tabHist:
     dfprod2 = dfprod
@@ -92,7 +113,7 @@ with tabHist:
 
     if sAreas:
         if m:
-            meses = np.arange(0,120,1)
+            meses = np.arange(0,240,1)
             col11, col12, col13 = st.columns(3)
             with col11:
                 decl = st.selectbox('Declínio', options=['Exponencial','Hiperbólico'])
@@ -111,7 +132,10 @@ with tabHist:
             qAjuste[0] = qAjuste[0]/4
             qAjuste[1] = qAjuste[1]/2
             Np = qAjuste.cumsum()*30.41
-            st.write(f'Acum={Np[-1]/1000:,.0f} MMm³ ({Np[-1]*1000*3.5314666572222e-8:.1f} Bcf)')
+            if qoqg.startswith('qg'):
+                st.write(f'Gp={Np[-1]/1000:,.0f} MMm³ ({Np[-1]*1000*3.5314666572222e-8:.1f} Bcf)')
+            else:
+                st.write(f'Np={Np[-1]:,.0f} m³ ({Np[-1]*6.29/1e6:.2f} MMbbl)')
 
             ax = sns.lineplot(data=dfprod2, x='m', hue='idpozo', y=qoqg, palette='tab20')
 
